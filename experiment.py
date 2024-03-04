@@ -223,16 +223,17 @@ class GBYK_GripAperture(klibs.Experiment):
 		for asset in trial_frames.keys():
 			frame = trial_frames[asset]
 			frame[:, 
-			   dt.update(
-					participant_id  = P.p_id,
-					practicing	    = P.practicing,
-					block_num	    = P.block_number, 
-					trial_num	    = P.trial_number, 
-					task_type	    = self.block_task,
-					target_size	    = self.target_size,
-					target_loc	    = self.target_loc, 
-					distractor_size = self.distractor_size,
-					distractor_loc  = self.distractor_loc
+			   dt.update(**{
+					"participant_id"  : P.p_id,
+					"practicing"	  : P.practicing,
+					"block_num"	      : P.block_number, 
+					"trial_num"	      : P.trial_number, 
+					"task_type"	      : self.block_task,
+					"target_size"	  : self.target_size,
+					"target_loc"      : self.target_loc, 
+					"distractor_size" : self.distractor_size,
+					"distractor_loc"  : self.distractor_loc
+				}
 			)]
 
 			self.optidata[asset] = dt.rbind(self.optidata[asset], frame)
