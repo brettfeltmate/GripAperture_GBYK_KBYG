@@ -224,7 +224,7 @@ class GBYK_GripAperture(klibs.Experiment):
 			frame = trial_frames[asset]
 			frame[:, 
 			   dt.update(**{
-					"participant_id"  : P.p_id,
+					"participant_id"  : P.participant_id,
 					"practicing"	  : P.practicing,
 					"block_num"	      : P.block_number, 
 					"trial_num"	      : P.trial_number, 
