@@ -18,6 +18,7 @@ import socket
 import struct
 from threading import Thread
 import time
+from datetime import datetime
 from DataUnpackers import *
 from DescriptionUnpackers import *
 from construct import Int32ul
@@ -236,6 +237,12 @@ class NatNetClient:
         self.frame_data = frameData()
         offset = 0  # Not sure what the first 4 bytes are supposed to be, not documented in the NatNet SDK
 
+        today = datetime.today().strftime('%m-%d')
+        current_time = datetime.now().strftime("%H:%M")
+        with open(f"{today}_at_{current_time}_framedata.bin", 'wb') as f:
+            f.write(unparsed_bytestream)
+        
+
 
         
 
@@ -273,71 +280,69 @@ class NatNetClient:
     # Functions for unpacking descriptions, called by __unpack_descriptions #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-    def __unpack_marker_set_description(self, bytestream: bytes, offset: int, NatNetStreamVersion: List[int] = None) -> int:
+    def __unpack_marker_set_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
         # offset += 4
-        marker_set_desc = markerSetDescription(bytestream, offset, NatNetStreamVersion)
-        self.descriptions.log("MarkerSet", marker_set_desc.export())
-        offset += marker_set_desc.relative_offset()
+        marker_set = markerSetDescription(unparsed_bytestream, NatNetStreamVersion)
+        self.descriptions.log("MarkerSet", marker_set.data())
 
-        return offset
+        return marker_set.relative_offset()
 
-    def __unpack_rigid_body_description(self, bytestream: bytes, offset: int, NatNetStreamVersion: List[int] = None) -> int:
+    def __unpack_rigid_body_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
         # offset += 4
-        rigid_body_desc = rigidBodyDescription(bytestream, offset, NatNetStreamVersion)
-        self.descriptions.log("RigidBody", rigid_body_desc.export())
-        offset += rigid_body_desc.relative_offset()
+        rigid_body = rigidBodyDescription(unparsed_bytestream, NatNetStreamVersion)
+        self.descriptions.log("RigidBody", rigid_body.data())
 
-        return offset
 
-    def __unpack_skeleton_description(self, bytestream: bytes, offset: int, NatNetStreamVersion: List[int] = None) -> int:
+        return rigid_body.relative_offset()
+
+    def __unpack_skeleton_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
         # offset += 4
-        skeleton_desc = skeletonDescription(bytestream, offset, NatNetStreamVersion)
-        self.descriptions.log("Skeleton", skeleton_desc.export())
-        offset += skeleton_desc.relative_offset()
+        skeleton = skeletonDescription(unparsed_bytestream, NatNetStreamVersion)
+        self.descriptions.log("Skeleton", skeleton.data())
 
-        return offset
+        return skeleton.relative_offset()
 
-    def __unpack_force_plate_description(self, bytestream: bytes, offset: int, NatNetStreamVersion: List[int] = None) -> int:
+    def __unpack_force_plate_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
         # offset += 4
-        force_plate_desc = forcePlateDescription(bytestream, offset, NatNetStreamVersion)
-        self.descriptions.log("ForcePlate", force_plate_desc.export())
-        offset += force_plate_desc.relative_offset()
+        force_plate = forcePlateDescription(unparsed_bytestream, NatNetStreamVersion)
+        self.descriptions.log("ForcePlate", force_plate.data())
     
-        return offset
+        return force_plate.relative_offset()
 
-    def __unpack_device_description(self, bytestream: bytes, offset: int, NatNetStreamVersion: List[int] = None) -> int:
+    def __unpack_device_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
         # offset += 4
-        device_desc = deviceDescription(bytestream, offset, NatNetStreamVersion)
-        self.descriptions.log("Device", device_desc.export())
-        offset += device_desc.relative_offset()
+        device = deviceDescription(unparsed_bytestream, NatNetStreamVersion)
+        self.descriptions.log("Device", device.data())
 
-        return offset
+        return device.relative_offset()
 
-    def __unpack_camera_description(self, bytestream: bytes, offset: int, NatNetStreamVersion: List[int] = None) -> int:
+    def __unpack_camera_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
         # offset += 4
-        camera_desc = cameraDescription(bytestream, offset, NatNetStreamVersion)
-        self.descriptions.log("Camera", camera_desc.export())
-        offset += camera_desc.relative_offset()
+        camera = cameraDescription(unparsed_bytestream, NatNetStreamVersion)
+        self.descriptions.log("Camera", camera.data())
 
-        return offset
+        return camera.relative_offset()
 
-    def __unpack_asset_description(self, bytestream: bytes, offset: int, NatNetStreamVersion: List[int] = None) -> int:
+    def __unpack_asset_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
         # offset += 4
-        asset_desc = assetDescription(bytestream, offset, NatNetStreamVersion)
-        self.descriptions.log("Asset", asset_desc.export())
-        offset += asset_desc.relative_offset()
+        asset = assetDescription(unparsed_bytestream, NatNetStreamVersion)
+        self.descriptions.log("Asset", asset.data())
 
-        return offset
+        return asset.relative_offset()
 
-    def __unpack_descriptions(self, bytestream: bytes, offset: int, NatNetStreamVersion: List[int] = None) -> int:
+    def __unpack_descriptions(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
         self.descriptions = Descriptions()
+        offset = 0
 
-        with open(f"descriptions_frame_{self.desc_num}.bin", 'wb') as f:
-            f.write(bytestream[offset:])
+
+        today = datetime.today().strftime('%m-%d')
+        current_time = datetime.now().strftime("%H:%M")
+        with open(f"{today}_at_{current_time}_descriptions.bin", 'wb') as f:
+            f.write(unparsed_bytestream)
         
         # # of data sets to process
-        dataset_count = int.from_bytes( bytestream[offset:offset+4], byteorder='little' )
-        offset += 4
+        dataset_count = int.from_bytes( unparsed_bytestream[offset:offset+4], byteorder='little' )
+        # offset += 4
 
         unpack_functions = {
             0: self.__unpack_marker_set_description,
@@ -350,22 +355,16 @@ class NatNetClient:
         }
 
         for i in range( 0, dataset_count ):
-            data_type = int.from_bytes( bytestream[offset:offset+4], byteorder='little' )
+            data_type = int.from_bytes( unparsed_bytestream[offset:offset+4], byteorder='little' )
             offset += 4
 
             if data_type in unpack_functions:
-                offset += 4
-                offset += unpack_functions[data_type](bytestream, offset, NatNetStreamVersion)
+                offset += unpack_functions[data_type](unparsed_bytestream[offset:], NatNetStreamVersion)
             else:
                 print(f"NatNetClient.__unpack_descriptions | Decode Error; Supplied unknown asset type: {data_type}")
 
 
-        description = self.descriptions.export((
-            asset_type for asset_type in self.return_description.keys() 
-            if self.return_description[asset_type]
-        ))
-
-        self.description_listener(description)
+        self.description_listener(self.descriptions.export())
         
         return offset
 
