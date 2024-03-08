@@ -31,6 +31,7 @@ class OptiTracker:
     def __init__(self) -> None:
         # NatNetClient instance
         self.client = self.init_client()
+        self.frame_num = 0
 
         # self.frame_listeners = {
         #     PREFIX: True, MARKER_SET: True, LABELED_MARKER: True,
@@ -86,10 +87,14 @@ class OptiTracker:
 
     # Get new frame data
     def recieve_frame(self, frame_data: Dict[str, List[Dict]]) -> None:
+        self.frame_num += 1
         # Store frame data
         for asset in frame_data.keys():
             for frame in frame_data[asset]:
+                print("----------------------------------\n\n")
+                print(f"OptiTracker, recieving F{self.frame_num}:\n", frame)
                 self.frames[asset].rbind(dt.Frame(frame))
+                print("----------------------------------\n\n")
 
 
     def update_frame(self, insert: Dict[Any, Any], into: Union[str, List[str]] = None) -> None:

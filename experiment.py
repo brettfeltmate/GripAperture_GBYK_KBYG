@@ -235,11 +235,22 @@ class GBYK_GripAperture(klibs.Experiment):
 					"distractor_loc"  : self.distractor_loc
 				}
 			)]
+			print("----------------------------------\n\n")
+			print(f"B{P.block_number}-T{P.trial_number} clean up:\n")
+			print(frame)
+			print("----------------------------------\n\n")
+			frame.to_csv(f"GripAperture_B{P.block_number}-T{P.trial_number}_{asset}_framedata.csv")
 
 			self.optidata[asset] = dt.rbind(self.optidata[asset], frame)
 
 	def clean_up(self):
+
 		for asset in self.optidata.keys():
+			print("----------------------------------\n\n")
+			print("exp final clean_up:\n")
+			print(self.optidata[asset])
+			print("----------------------------------\n\n")
+
 			self.optidata[asset].to_csv(f"GripAperture_{asset}_framedata.csv", append=True)
 
 	def present_stimuli(self, trial_prep = False, show_target = False, gbyk_dev = False):
