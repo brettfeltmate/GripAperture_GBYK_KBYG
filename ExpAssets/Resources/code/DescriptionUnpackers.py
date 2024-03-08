@@ -146,14 +146,14 @@ class Descriptions:
         
         # Aggregate Frame Data
         self._descriptions = {
-            'MarkerSet': None, 
-            'RigidBody': None, 
-            'Skeleton': None,
-            'AssetRigidBody': None,
-            'AssetMarker': None,
-            'ForcePlate': None, 
-            'Device': None, 
-            'Camera': None
+            'MarkerSets': None, 
+            'RigidBodies': None, 
+            # 'Skeleton': None,
+            # 'AssetRigidBody': None,
+            # 'AssetMarker': None,
+            # 'ForcePlate': None, 
+            # 'Device': None, 
+            # 'Camera': None
         }
     
     # Log frame data for a given asset type

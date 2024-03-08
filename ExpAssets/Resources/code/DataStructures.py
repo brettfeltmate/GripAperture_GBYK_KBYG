@@ -9,7 +9,7 @@ dataStruct_Prefix = Struct(
     'asset_type' /      Computed("Prefix"),
     'frame_number' /    Int32ul,
     'relative_offset' / Tell,
-    Probe()
+    #Probe()
 )
 
 
@@ -24,13 +24,13 @@ dataStruct_Marker = Struct(
 
 dataStruct_MarkerSet = Struct(
     'asset_type' /      Computed("MarkerSet"),
-    Probe(),
+    #Probe(),
     'asset_name' /      CString("utf8"),
-    Probe(),
+    #Probe(),
     'child_count' /     Int32ul,
     'children' /        dataStruct_Marker[this.child_count],
     'relative_offset' / Tell,
-    Probe()
+    #Probe()
 )
 
 dataStruct_MarkerSets = Struct(
@@ -39,7 +39,7 @@ dataStruct_MarkerSets = Struct(
     'packet_size' /     Int32ul,
     'children' /        dataStruct_MarkerSet[this.child_count],
     'relative_offset' / Tell,
-    Probe()
+    #Probe()
 )
 
 
@@ -60,7 +60,7 @@ dataStruct_LabeledMarker = Struct(
     'param' /           Int16sl,
     'residual' /        Float32l,
     'relative_offset' / Tell,
-    Probe()
+    #Probe()
 )
 
 dataStruct_LabeledMarkerSet = Struct(
@@ -69,7 +69,7 @@ dataStruct_LabeledMarkerSet = Struct(
     'child_count' /     Int32ul,
     'children' /        dataStruct_LabeledMarker[this.child_count],
     'relative_offset' / Tell,
-    Probe()
+    #Probe()
 )
 
 
@@ -87,7 +87,7 @@ dataStruct_LegacyMarkerSet = Struct(
     'packet_size' /     Int32ul,
     'children' /        dataStruct_LegacyMarker[this.child_count],
     'relative_offset' / Tell,
-    Probe()
+    #Probe()
 )
 
 # RigidBody & Skeleton structures
@@ -114,7 +114,7 @@ dataStruct_RigidBodies = Struct(
     'packet_size' /     Int32ul,
     'children' /        dataStruct_RigidBody[this.child_count],
     'relative_offset' / Tell,
-    Probe()
+    #Probe()
 )
 
 dataStruct_Skeleton = Struct(
@@ -122,7 +122,7 @@ dataStruct_Skeleton = Struct(
     'asset_ID' /        Int32ul,
     'child_count' /     Int32ul,
     'children' /        dataStruct_RigidBody[this.child_count],
-    Probe()
+    #Probe()
 )
 
 dataStruct_Skeletons = Struct(
@@ -131,7 +131,7 @@ dataStruct_Skeletons = Struct(
     'packet_size' /     Int32ul,
     'children' /        dataStruct_Skeleton[this.child_count],
     'relative_offset' / Tell,
-    Probe()
+    #Probe()
 )
 
 
@@ -169,7 +169,7 @@ dataStruct_Assets = Struct(
     "marker_count" /        Int32ul,
     "marker_children" /     dataStruct_AssetMarker[this.marker_count],
     "relative_offset" /     Tell,
-    Probe()
+    #Probe()
 )
 
 dataStruct_Assetss = Struct(
@@ -178,7 +178,7 @@ dataStruct_Assetss = Struct(
     'packet_size' /     Int32ul,
     'children' /        dataStruct_Assets[this.child_count],
     'relative_offset' / Tell,
-    Probe()
+    #Probe()
 )
 
 
@@ -211,7 +211,7 @@ dataStruct_ForcePlates = Struct(
     'packet_size' /     Int32ul,
     'children' /        dataStruct_ForcePlate[this.child_count],
     'relative_offset' / Tell,
-    Probe()
+    #Probe()
 )
 
 dataStruct_Device = Struct(
@@ -227,7 +227,7 @@ dataStruct_Devices = Struct(
     'packet_size' /     Int32ul,
     'children' /        dataStruct_Device[this.child_count],
     'relative_offset' / Tell,
-    Probe()
+    #Probe()
 )
 
 
@@ -250,7 +250,7 @@ dataStruct_Suffix = Struct(
     'is_recording' /                Computed(this.param * isRecording),
     'tracked_models_changed' /      Computed(this.param * hasChanged),
     'relative_offset' /             Tell,
-    Probe()
+    #Probe()
 )
 
 

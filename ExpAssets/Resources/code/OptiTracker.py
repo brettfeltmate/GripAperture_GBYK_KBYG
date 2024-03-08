@@ -31,7 +31,8 @@ class OptiTracker:
     def __init__(self) -> None:
         # NatNetClient instance
         self.client = self.init_client()
-        self.frame_num = 0
+        self.dataframe_num = 0
+        self.descframe_num = 0
 
         # self.frame_listeners = {
         #     PREFIX: True, MARKER_SET: True, LABELED_MARKER: True,
@@ -57,43 +58,63 @@ class OptiTracker:
         client = NatNetClient()
 
         # Set frame listener
-        client.frame_data_listener = self.recieve_frame
+        client.frame_data_listener = self.recieve_dataframe
+        client.description_listener = self.recieve_descframe
 
         return client
     
     # Start NatNetClient, returns True if successful, False otherwise
     def start(self) -> bool:
-        self.init_frame()
+        self.init_dataframe()
+        self.init_descframe()
+
         return self.client.startup()
 
     # Stop NatNetClient
     def stop(self) -> None:
         self.client.shutdown()
 
-    def init_frame(self) -> Dict[str, dt.Frame]:
-        self.frames = {
+    def init_dataframe(self) -> Dict[str, dt.Frame]:
+        self.dataframes = {
             'Prefix':dt.Frame(), 
             'MarkerSets':dt.Frame(), 
-            #'LabeledMarkerSet':dt.Frame(),
+            'LabeledMarkerSet':dt.Frame(),
             'LegacyMarkerSet':dt.Frame(),
             'RigidBodies':dt.Frame(), 
             'Skeletons':dt.Frame(),
-            #'AssetRigidBodies':dt.Frame(),
+            'AssetRigidBodies':dt.Frame(),
             'AssetMarkers':dt.Frame(),
             #'ForcePlates':dt.Frame(), 
             #'Devices':dt.Frame(), 
             #'Suffix': dt.Frame()
         }
 
+    def init_descframe(self) -> Dict[str, dt.Frame]:
+        self.descframes = {
+            'MarkerSets':dt.Frame(), 
+            'RigidBodies':dt.Frame()
+        }
+
     # Get new frame data
-    def recieve_frame(self, frame_data: Dict[str, List[Dict]]) -> None:
-        self.frame_num += 1
+    def recieve_dataframe(self, frame_data: Dict[str, List[Dict]]) -> None:
+        self.dataframe_num += 1
         # Store frame data
         for asset in frame_data.keys():
             for frame in frame_data[asset]:
+                # print("----------------------------------\n\n")
+                # print(f"OptiTracker, recieving F{self.dataframe_num} data:\n", frame)
+                self.dataframes[asset].rbind(dt.Frame(frame))
+                # print("----------------------------------\n\n")
+
+    # Get new frame data
+    def recieve_descframe(self, frame_desc: Dict[str, List[Dict]]) -> None:
+        self.descframe_num += 1
+        # Store frame data
+        for asset in frame_desc.keys():
+            for frame in frame_desc[asset]:
                 print("----------------------------------\n\n")
-                print(f"OptiTracker, recieving F{self.frame_num}:\n", frame)
-                self.frames[asset].rbind(dt.Frame(frame))
+                print(f"OptiTracker, recieving F{self.descframe_num} desc:\n", frame)
+                self.descframes[asset].rbind(dt.Frame(frame))
                 print("----------------------------------\n\n")
 
 
@@ -102,23 +123,28 @@ class OptiTracker:
             assets_to_update = [into] if isinstance(into, str) else into
 
         else:
-            assets_to_update = self.frames.keys()
+            assets_to_update = self.dataframes.keys()
 
         try:
             for asset in assets_to_update:
-                self.frames[asset][:, dt.update(**insert)]
+                self.dataframes[asset][:, dt.update(**insert)]
 
         except KeyError:
             raise ValueError(f"OptiTracker.update_frame: Invalid asset type {asset}")
 
 
     def write_data(self, path: str) -> None:
-        for asset, frame in self.frames.items():
+        for asset, frame in self.dataframes.items():
             frame.to_csv(f"{path}/{asset}.csv")
     
     # Return frame and reset to None
-    def export(self) -> Dict[str, dt.Frame]:
-        return self.frames
+    def dataexport(self) -> Dict[str, dt.Frame]:
+        return self.dataframes
+    
+
+    # Return frame and reset to None
+    def descexport(self) -> Dict[str, dt.Frame]:
+        return self.descframes
     
 
         

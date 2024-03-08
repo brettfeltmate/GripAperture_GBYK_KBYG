@@ -1,5 +1,5 @@
 # Structures created using the work of art that is the Construct library
-from construct import Struct, CString, Optional, this, Computed, Tell, Probe
+from construct import Struct, CString, Bytes, this, Computed, Tell, Probe
 from construct import Int32ul, Float32l, Int32ul
 
 # MoCap Asset Description structures
@@ -54,12 +54,12 @@ descStruct_RigidBodyMarker = Struct(
     'offset_z' /        Float32l,
     'active_label' /    Int32ul,
     'asset_name' /      CString('utf8'),
-    Probe()
+    #Probe()
 )
 
 descStruct_RigidBody = Struct(
-    Probe(lookahead=12),
     'asset_type' /      Computed("RigidBody"),
+    'packet_size' /     Int32ul,
     'asset_name' /      CString('utf8'),
     'asset_ID' /        Int32ul,
     'parent_ID' /       Int32ul,
@@ -70,20 +70,21 @@ descStruct_RigidBody = Struct(
     'pos_y' /           Float32l, 
     'pos_z' /           Float32l,
     'child_count' /     Int32ul,
-    Probe(),
+    #Probe(),
     'children' /        descStruct_RigidBodyMarker[this.child_count],
     'relative_offset'/  Tell,
-    Probe()
+    #Probe()
 )
 
 descStruct_Skeleton = Struct(
     'asset_type' /      Computed("Skeleton"),
+    'packet_size' /     Int32ul,
     'asset_name' /      CString('utf8'),
     'asset_ID' /        Int32ul,
     'child_count' /     Int32ul,
     'children' /        descStruct_RigidBody[this.child_count],
     'relative_offset' / Tell,
-    Probe()
+    #Probe()
 )
 # --------------------------
 
@@ -91,15 +92,17 @@ descStruct_Skeleton = Struct(
 # --------------------------
 
 descStruct_Asset = Struct(
+    'asset_type' /          Computed("Asset"),
+    'packet_size'/          Int32ul,
     'asset_name' /          CString('utf8'),
-    'asset_type' /          Int32ul,
+    'asset_type_motive'/    Int32ul,
     'asset_ID' /            Int32ul,
     'rigid_body_count' /    Int32ul,
     'rigid_body_children' / descStruct_RigidBody[this.rigid_body_count],
     'marker_count' /        Int32ul,
     'marker_children' /     descStruct_Marker[this.marker_count],
     'relative_offset' /     Tell,
-    Probe()
+    #Probe()
 )
 
 

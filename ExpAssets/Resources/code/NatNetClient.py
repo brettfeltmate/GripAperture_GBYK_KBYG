@@ -238,7 +238,7 @@ class NatNetClient:
         offset = 0  # Not sure what the first 4 bytes are supposed to be, not documented in the NatNet SDK
 
         today = datetime.today().strftime('%m-%d')
-        current_time = datetime.now().strftime("%H:%M")
+        current_time = datetime.now().strftime("%H-%M-%S")
         with open(f"{today}_at_{current_time}_framedata.bin", 'wb') as f:
             f.write(unparsed_bytestream)
         
@@ -256,7 +256,7 @@ class NatNetClient:
             self.__unpack_skeletons_data,
             self.__unpack_assets_data,
             # TODO: Following unpackers are currently inoperational, but also superfluous for present purposes
-            # self.__unpack_labeled_marker_data,
+            self.__unpack_labeled_marker_set_data,
             # self.__unpack_force_plates_data,
             # self.__unpack_devices_data,
             # self.__unpack_frame_suffix_data
@@ -281,14 +281,14 @@ class NatNetClient:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def __unpack_marker_set_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
-        # offset += 4
+        nBytes = Int32ul.parse(unparsed_bytestream[4:])
         marker_set = markerSetDescription(unparsed_bytestream, NatNetStreamVersion)
         self.descriptions.log("MarkerSet", marker_set.data())
 
         return marker_set.relative_offset()
 
     def __unpack_rigid_body_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
-        # offset += 4
+        nBytes = Int32ul.parse(unparsed_bytestream[4:])
         rigid_body = rigidBodyDescription(unparsed_bytestream, NatNetStreamVersion)
         self.descriptions.log("RigidBody", rigid_body.data())
 
@@ -296,35 +296,35 @@ class NatNetClient:
         return rigid_body.relative_offset()
 
     def __unpack_skeleton_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
-        # offset += 4
+        nBytes = Int32ul.parse(unparsed_bytestream[4:])
         skeleton = skeletonDescription(unparsed_bytestream, NatNetStreamVersion)
         self.descriptions.log("Skeleton", skeleton.data())
 
         return skeleton.relative_offset()
 
     def __unpack_force_plate_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
-        # offset += 4
+        nBytes = Int32ul.parse(unparsed_bytestream[4:])
         force_plate = forcePlateDescription(unparsed_bytestream, NatNetStreamVersion)
         self.descriptions.log("ForcePlate", force_plate.data())
     
         return force_plate.relative_offset()
 
     def __unpack_device_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
-        # offset += 4
+        nBytes = Int32ul.parse(unparsed_bytestream[4:])
         device = deviceDescription(unparsed_bytestream, NatNetStreamVersion)
         self.descriptions.log("Device", device.data())
 
         return device.relative_offset()
 
     def __unpack_camera_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
-        # offset += 4
+        nBytes = Int32ul.parse(unparsed_bytestream[4:])
         camera = cameraDescription(unparsed_bytestream, NatNetStreamVersion)
         self.descriptions.log("Camera", camera.data())
 
         return camera.relative_offset()
 
     def __unpack_asset_description(self, unparsed_bytestream: bytes, NatNetStreamVersion: List[int] = None) -> int:
-        # offset += 4
+        nBytes = Int32ul.parse(unparsed_bytestream[4:])
         asset = assetDescription(unparsed_bytestream, NatNetStreamVersion)
         self.descriptions.log("Asset", asset.data())
 
@@ -336,30 +336,30 @@ class NatNetClient:
 
 
         today = datetime.today().strftime('%m-%d')
-        current_time = datetime.now().strftime("%H:%M")
+        current_time = datetime.now().strftime("%H-%M-%S")
         with open(f"{today}_at_{current_time}_descriptions.bin", 'wb') as f:
             f.write(unparsed_bytestream)
         
         # # of data sets to process
-        dataset_count = int.from_bytes( unparsed_bytestream[offset:offset+4], byteorder='little' )
-        # offset += 4
+        dataset_count = Int32ul.parse(unparsed_bytestream[4:])
+        offset += 4
 
         unpack_functions = {
             0: self.__unpack_marker_set_description,
             1: self.__unpack_rigid_body_description,
-            2: self.__unpack_skeleton_description,
-            3: self.__unpack_force_plate_description,
-            4: self.__unpack_device_description,
-            5: self.__unpack_camera_description,
-            6: self.__unpack_asset_description
+            # 2: self.__unpack_skeleton_description,
+            # 3: self.__unpack_force_plate_description,
+            # 4: self.__unpack_device_description,
+            # 5: self.__unpack_camera_description,
+            # 6: self.__unpack_asset_description
         }
 
         for i in range( 0, dataset_count ):
-            data_type = int.from_bytes( unparsed_bytestream[offset:offset+4], byteorder='little' )
+            data_type = Int32ul.parse(unparsed_bytestream[4:]) 
             offset += 4
 
             if data_type in unpack_functions:
-                offset += unpack_functions[data_type](unparsed_bytestream[offset:], NatNetStreamVersion)
+                offset = unpack_functions[data_type](unparsed_bytestream[offset:], NatNetStreamVersion)
             else:
                 print(f"NatNetClient.__unpack_descriptions | Decode Error; Supplied unknown asset type: {data_type}")
 
@@ -562,7 +562,7 @@ class NatNetClient:
             offset += self.__unpack_frame_data(bytestream[offset:], NatNetStreamVersion=None)
 
         elif message_id == self.NAT_MODELDEF:
-            offset += self.__unpack_descriptions(bytestream, offset, NatNetStreamVersion=None)
+            offset += self.__unpack_descriptions(bytestream[offset:], NatNetStreamVersion=None)
 
         elif message_id == self.NAT_SERVERINFO:
             trace(f"Message ID: {message_id:.1f} (NAT_SERVERINFO), packet size: {packet_size}")
@@ -733,7 +733,7 @@ class NatNetClient:
         ## Get NatNet and server versions
         self.send_request(self.command_socket, self.NAT_REQUEST_FRAMEOFDATA, "", (self.settings['server_ip'], self.settings['command_port']) )
         ## Request the model definitions
-        #self.send_request(self.command_socket, self.NAT_REQUEST_MODELDEF, "",  (self.settings['server_ip'], self.settings['command_port']) )
+        self.send_request(self.command_socket, self.NAT_REQUEST_MODELDEF, "",  (self.settings['server_ip'], self.settings['command_port']) )
         return True
 
     def shutdown(self) -> None:

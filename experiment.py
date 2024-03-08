@@ -111,12 +111,19 @@ class GBYK_GripAperture(klibs.Experiment):
 		self.opti = OptiTracker()
 
 		self.optidata = {
-			"Prefix": 		   dt.Frame(),
-			"MarkerSets": 	   dt.Frame(),
-			"LegacyMarkerSet": dt.Frame(),
-			"RigidBodies": 	   dt.Frame(),
-			"Skeletons": 	   dt.Frame(),
-			"AssetMarkers":    dt.Frame()
+			"Prefix": 		     dt.Frame(),
+			"MarkerSets": 	     dt.Frame(),
+			"LegacyMarkerSet":   dt.Frame(),
+			"LabeledMarkerSet":  dt.Frame(),
+			"RigidBodies": 	     dt.Frame(),
+			"Skeletons": 	     dt.Frame(),
+			"AssetRigidBodies":  dt.Frame(),
+			"AssetMarkers":      dt.Frame()
+		}
+
+		self.optidesc = {
+			"MarkerSets": 	     dt.Frame(),
+			"RigidBodies": 	     dt.Frame()
 		}
 
 
@@ -218,7 +225,7 @@ class GBYK_GripAperture(klibs.Experiment):
 		}
 
 	def trial_clean_up(self):
-		trial_frames = self.opti.export()
+		trial_frames = self.opti.dataexport()
 
 		for asset in trial_frames.keys():
 			frame = trial_frames[asset]
@@ -236,22 +243,56 @@ class GBYK_GripAperture(klibs.Experiment):
 				}
 			)]
 			print("----------------------------------\n\n")
-			print(f"B{P.block_number}-T{P.trial_number} clean up:\n")
+			print(f"data from B{P.block_number}-T{P.trial_number} clean up:\n")
 			print(frame)
 			print("----------------------------------\n\n")
 			frame.to_csv(f"GripAperture_B{P.block_number}-T{P.trial_number}_{asset}_framedata.csv")
 
 			self.optidata[asset] = dt.rbind(self.optidata[asset], frame)
 
+
+		trial_frames = self.opti.descexport()
+
+		for asset in trial_frames.keys():
+			frame = trial_frames[asset]
+			frame[:, 
+			   dt.update(**{
+					"participant_id"  : P.participant_id,
+					"practicing"	  : P.practicing,
+					"block_num"	      : P.block_number, 
+					"trial_num"	      : P.trial_number, 
+					"task_type"	      : self.block_task,
+					"target_size"	  : self.target_size,
+					"target_loc"      : self.target_loc, 
+					"distractor_size" : self.distractor_size,
+					"distractor_loc"  : self.distractor_loc
+				}
+			)]
+			print("----------------------------------\n\n")
+			print(f"desc from B{P.block_number}-T{P.trial_number} clean up:\n")
+			print(frame)
+			print("----------------------------------\n\n")
+			frame.to_csv(f"GripAperture_B{P.block_number}-T{P.trial_number}_{asset}_framedesc.csv")
+
+			self.optidesc[asset] = dt.rbind(self.optidesc[asset], frame)
+
 	def clean_up(self):
 
 		for asset in self.optidata.keys():
 			print("----------------------------------\n\n")
-			print("exp final clean_up:\n")
+			print("exp data final clean_up:\n")
 			print(self.optidata[asset])
 			print("----------------------------------\n\n")
 
 			self.optidata[asset].to_csv(f"GripAperture_{asset}_framedata.csv", append=True)
+
+		for asset in self.optidesc.keys():
+			print("----------------------------------\n\n")
+			print("exp desc final clean_up:\n")
+			print(self.optidesc[asset])
+			print("----------------------------------\n\n")
+
+			self.optidesc[asset].to_csv(f"GripAperture_{asset}_framedesc.csv", append=True)
 
 	def present_stimuli(self, trial_prep = False, show_target = False, gbyk_dev = False):
 		fill()

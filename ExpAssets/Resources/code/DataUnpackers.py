@@ -195,7 +195,7 @@ class frameData:
         self._framedata = {
             'Prefix': [], 
             'MarkerSets': [], 
-            #'LabeledMarkerSet': [],
+            'LabeledMarkerSet': [],
             'LegacyMarkerSet': [],
             'RigidBodies': [], 
             'Skeletons': [],
