@@ -66,14 +66,11 @@ class GBYK_GripAperture(klibs.Experiment):
 		# Define standard units
 		PX_CM = round(P.ppi / 2.54)
 
-		SMALL_PX = PX_CM * SMALL_CM
-		LARGE_PX = PX_CM * LARGE_CM
 
-		# Placeholder sizing properties
+		SMALL_DIAM = SMALL_CM  * PX_CM
+		LARGE_DIAM = LARGE_CM  * PX_CM
+		BRIMWIDTH  = BRIM_CM   * PX_CM   		
 		OFFSET 	   = OFFSET_CM * PX_CM		
-		BRIMWIDTH  = BRIM_CM * PX_CM   		
-		SMALL_DIAM = SMALL_PX + BRIMWIDTH
-		LARGE_DIAM = LARGE_PX + BRIMWIDTH
 
 		# placeholder locs
 		self.locs = {	# 12cm between placeholder centers
