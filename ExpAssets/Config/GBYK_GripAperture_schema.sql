@@ -24,5 +24,5 @@ CREATE TABLE trials (
     distractor_loc text not null,
     response_time text not null,
     movement_time text not null,
-    object_grasped text not null
+    reach_completed text not null
 );

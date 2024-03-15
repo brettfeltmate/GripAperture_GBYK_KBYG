@@ -21,14 +21,17 @@ from klibs.KLGraphics import KLDraw as kld
 from klibs.KLGraphics import fill, blit, flip, clear
 from klibs.KLUserInterface import any_key, ui_request, key_pressed
 from klibs.KLCommunication import message
-from klibs.KLUtilities import hide_mouse_cursor, now
+from klibs.KLUtilities import hide_mouse_cursor, now, pump
 from klibs.KLAudio import Tone
+from klibs.KLExceptions import TrialException
+from klibs.KLTime import CountDown
 
 from random import randrange, shuffle
 
 import datatable as dt
 
 from OptiTracker import OptiTracker
+from get_key_state import get_key_state
 
 # timing constants
 GO_SIGNAL_ONSET  = (500, 2000)
@@ -162,50 +165,80 @@ class GBYK_GripAperture(klibs.Experiment):
 		# base display
 		self.present_stimuli()
 
-		# start optitracker
-		self.opti.start()
+		# trigger trial with key press
+		while True:
+			q = pump(True)
+			if key_pressed('space', queue=q):
+				break
+
+
+
+
 
 
 	def trial(self):
 		hide_mouse_cursor()
+		self.opti.start()
 
-		# TODO: open goggles
+		# start optitracker
+		reach_completed = False
+		rt = -1
+		mt = -1
 
-		# if KBYG, reveal target immediately
+
+
 		if self.block_task == KBYG:
 			self.present_stimuli(show_target = True)
 
-		else:
-			self.present_stimuli(gbyk_dev = True)
 
-
+				
 		while self.evm.before("go_signal"):
-			ui_request()
+			if get_key_state("space") == 0:
+				self.evm.reset()
+				
+				fill()
+				message("Please keep your hand at rest until the go signal.", location=P.screen_c)
+				flip()
 
-		# signal to start
-		self.go_signal.play()
+				admonishment_period = CountDown(1)
+				while admonishment_period.counting():
+					ui_request()
 
-		# monitor timings
-		trial_start = now()
-		timeout_at = trial_start + (RESPONSE_TIMEOUT // 1000)
+				raise TrialException(f"\nBlock {P.block_number}, Trial {P.trial_number}: \n\tAborted - premature response. \n\tRecycled into trial deck.\n")
+			
+		self.Tone.play()
+			
+		while self.evm.before("response_timeout"):
+			while get_key_state("space") == 0:
+				ui_request()
+		
+			
+			if self.block_task == GBYK:
+				self.present_stimuli(show_target = True)
+				rt = self.evm.time_elapsed
 
-		# TODO: remove in production
-		if self.block_task == GBYK:
-			show_target = False
-			while not show_target:
-				show_target = key_pressed()
-
-		self.present_stimuli(show_target = True)
 
 
-
-
-		# until response or timeout
-		responded = False
-		while now() < timeout_at and not responded:
-			responded = key_pressed()
+			q = pump(True)
+			if key_pressed('space', queue=q):
+				mt = self.evm.time_elapsed - rt
+				reach_completed = True
+				break
 
 		self.opti.stop()
+
+		if not reach_completed:
+
+			fill()
+			message("Trial timed out, please respond faster.", location=P.screen_c)
+			flip()
+
+			feedback_period = CountDown(1)
+
+			while feedback_period.counting():
+				ui_request()
+
+
 
 		return {
 			"block_num":       P.block_number,
@@ -216,9 +249,9 @@ class GBYK_GripAperture(klibs.Experiment):
 			"target_loc": 	   self.target_loc,
 			"distractor_size": self.distractor_size,
 			"distractor_loc":  self.distractor_loc,
-			"response_time":   now() - trial_start,
-			"movement_time":   "NA",
-			"object_grasped":  "NA"
+			"response_time":   rt,
+			"movement_time":   mt,
+			"reach_completed": reach_completed
 		}
 
 	def trial_clean_up(self):
