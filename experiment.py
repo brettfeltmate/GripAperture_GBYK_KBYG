@@ -98,7 +98,6 @@ class GBYK_GripAperture(klibs.Experiment):
 
 		# randomize task sequence
 		self.task_sequence = [GBYK, KBYG]
-		shuffle(self.task_sequence)
 
 		
 		# Stitch in practice block per task if enabled
@@ -206,19 +205,23 @@ class GBYK_GripAperture(klibs.Experiment):
 
 				raise TrialException(f"\nBlock {P.block_number}, Trial {P.trial_number}: \n\tAborted - premature response. \n\tRecycled into trial deck.\n")
 			
-		self.Tone.play()
+		self.go_signal.play()
 			
 		while self.evm.before("response_timeout"):
-			while get_key_state("space") == 0:
+			if get_key_state("space") == 1:
 				ui_request()
+			else:
+				rt = self.evm.time_elapsed
+				break
 		
 			
-			if self.block_task == GBYK:
-				self.present_stimuli(show_target = True)
-				rt = self.evm.time_elapsed
+		if self.block_task == GBYK:
+			print("target revealed")
+			self.present_stimuli(show_target = True)
+				
 
 
-
+		while self.evm.before("response_timeout"):
 			q = pump(True)
 			if key_pressed('space', queue=q):
 				mt = self.evm.time_elapsed - rt
